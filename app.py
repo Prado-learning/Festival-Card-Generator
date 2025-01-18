@@ -7,6 +7,7 @@ import modelscope_studio.components.antd as antd
 from modelscope.outputs import OutputKeys
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
+# from modelscope import AutoModelForCausalLM, AutoTokenizer
 
 from dashscope import ImageSynthesis
 import os
@@ -20,7 +21,7 @@ from string import Template
 from http import HTTPStatus
 
 import dashscope
-dashscope.api_key = "your_api_key"
+dashscope.api_key = "sk-1d9f630ab5a34072b30ac4630021a643"
 
 
 
@@ -61,7 +62,9 @@ RECIPIENTS = ["妈妈", "爸爸", "女朋友", "男朋友", "老公", "老婆", 
 # 风格选项
 STYLES = [
     "传统风格", "现代风格", "卡通风格", "简约风格",
-    "商务风格", "浪漫风格", "创意风格"
+    "商务风格", "浪漫风格", "创意风格", "中国风",
+    "二次元", "手办", "风景", "卡通",
+    "水墨画", "3d渲染", "人像", "动漫",
 ]
 
 DEMO_LIST = [
@@ -103,14 +106,36 @@ css = """
   align-items: center;
 }
 
+
 .right_panel {
   border: 1px solid #BFBFC4;
   border-radius: 8px;
   padding: 16px;
-  min-height: 90vh;
+  min-height: 540px; /* 调整最小高度 */
+  min-width: 600px; /* 设置宽度，例如600px */
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+# .button-container {
+#   display: flex;
+#   justify-content: space-between; /* 按钮居中对齐 */
+#   gap: 10px; /* 按钮之间的间距 */
+#   width: 100%; /* 父容器占据左侧栏全部宽度 */  
+# }
+# .button {
+#   flex: 1; /* 每个按钮占据父容器的一半宽度 */
+# }
+.button-container {
+  display: flex;
+  gap: 10px; /* 按钮之间的间距 */
+  width: 100%; /* 容器宽度占满左侧栏 */
+}
+
+.half-width-button {
+  flex: 1; /* 每个按钮占据容器的一半宽度 */
+  text-align: center; /* 按钮文本居中 */
 }
 
 .sandbox_output {
@@ -120,8 +145,13 @@ css = """
   padding: 16px;
 }
 
+.example-container {
+  margin-top: auto; /* 将示例部分推到右侧面板的底部 */
+}
+
 .step_container {
-  padding: 20px 0;
+   padding: 20px 0;
+   
 }
 
 .display_chatbot button {
@@ -140,7 +170,7 @@ if not os.path.exists(directory_path):
 # 初始化 OpenAI 客户端
 client = OpenAI(
     # api_key=MODELSCOPE_ACCESS_TOKEN,
-    api_key="your_api_key",
+    api_key="sk-1d9f630ab5a34072b30ac4630021a643",
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
@@ -168,7 +198,7 @@ def remove_code_block(text):
 def send_to_sandbox(code):
     encoded_html = base64.b64encode(code.encode('utf-8')).decode('utf-8')
     data_uri = f"data:text/html;charset=utf-8;base64,{encoded_html}"
-    return f"<iframe src=\"{data_uri}\" width=\"100%\" height=\"920px\"></iframe>"
+    return f"<iframe src=\"{data_uri}\" width=\"100%\" height=\"540px\"></iframe>"  # 修改：缩小iframe的高度
 
 # 保存按钮的点击事件
 # def save_card(festival, recipient, ui_code_str):
@@ -230,6 +260,7 @@ def generate_word_info(query, festival, recipient, style, display_messages):
     try:
         gen = client.chat.completions.create(
             model="qwen-plus",
+            # model="Qwen/Qwen2.5-32B-Instruct",
             messages=messages,
             stream=True
         )
@@ -253,14 +284,27 @@ def generate_word_info(query, festival, recipient, style, display_messages):
         }
 
 async def generate_image(query):
+    # 修改： 图片生成大小
     rsp = ImageSynthesis.call(model="flux-dev",
                                 prompt=query,
                                 size='768*512')
+    # 修改：检查错误原因
+    # 检查API的返回值
     if rsp.status_code == HTTPStatus.OK:
-        return rsp.output.results[0].url
+        if rsp.output.results:
+            return rsp.output.results[0].url
+        else:
+            # 如果没有返回图片结果，记录日志并返回默认值
+            print("Error: API returned an empty results list")
+            return None  # 或返回一个默认图片的URL
     else:
-        print('Failed, status_code: %s, code: %s, message: %s' %
-                (rsp.status_code, rsp.code, rsp.message))
+        print(f"Failed to generate image, status_code: {rsp.status_code}, message: {rsp.message}")
+        return None
+    # if rsp.status_code == HTTPStatus.OK:
+    #     return rsp.output.results[0].url
+    # else:
+    #     print('Failed, status_code: %s, code: %s, message: %s' %
+    #             (rsp.status_code, rsp.code, rsp.message))
 
 async def generate_media(infos):
     return await asyncio.gather(
@@ -281,6 +325,7 @@ def generate_ui_code(infos, display_messages):
     try:
         gen = client.chat.completions.create(
             model="qwen-plus",
+            #model="Qwen/Qwen2.5-32B-Instruct",
             messages=messages,
             stream=True
         )
@@ -314,7 +359,7 @@ with gr.Blocks(css=css) as demo:
                     with antd.Flex(vertical=True, gap="middle", wrap=True):
                         header = gr.HTML("""
                                   <div class="left_header">
-                                    <img src="https://uy.wzznft.com/i/2025/01/14/9dxn6i7.png" style="width: 500px; height: 100px;" />
+                                    <img src="https://uy.wzznft.com/i/2025/01/14/9dxn6i7.png" style="width: 500px; height: 50px;" />
                                    <h2>节日祝福卡生成器</h2>
                                   </div>
                                    """)
@@ -331,6 +376,9 @@ with gr.Blocks(css=css) as demo:
                             label="祝福对象",
                             value="妈妈" 
                         ) 
+                        input = antd.InputTextarea(
+                            size="large", allow_clear=True, placeholder="请输入想说的祝福语")                        
+                        
                         # 祝福风格选择
                         style = gr.Radio(
                             choices=STYLES,
@@ -338,29 +386,34 @@ with gr.Blocks(css=css) as demo:
                             value="传统风格" 
                         ) 
 
-                        input = antd.InputTextarea(
-                            size="large", allow_clear=True, placeholder="请输入想说的祝福语")
+                        # input = antd.InputTextarea(
+                        #     size="large", allow_clear=True, placeholder="请输入想说的祝福语")
                         
                         query = [input, festival, recipient, style]
                         print("*"*100)
                         print(query)
-
-                        btn = antd.Button("生成", type="primary", size="large")
                         
+                        # 按钮容器，占据左侧栏的全部宽度
+                        with ms.Div(elem_classes="button-container"):  # 包裹按钮的容器
+                            btn = antd.Button("生成", type="primary", size="large", elem_classes="half-width-button")  # 生成按钮
+                            save_btn = antd.Button("保存", type="primary", size="large", elem_classes="half-width-button")  # 保存按钮
 
-                        antd.Divider("示例")
-                        with antd.Flex(gap="small", wrap=True):
-                            with ms.Each(DEMO_LIST):
-                                with antd.Card(hoverable=True, as_item="card") as demoCard:
-                                    antd.CardMeta()
-                                demoCard.click(demo_card_click, outputs=[input])
 
-                        antd.Divider("设置")
-                        save_btn = antd.Button("保存", type="primary", size="large")
+                        # btn = antd.Button("生成", type="primary", size="large")
+                        
+                        # antd.Divider("示例")
+                        # with antd.Flex(gap="small", wrap=True):
+                        #     with ms.Each(DEMO_LIST):
+                        #         with antd.Card(hoverable=True, as_item="card") as demoCard:
+                        #             antd.CardMeta()
+                        #         demoCard.click(demo_card_click, outputs=[input])
+
+                        # antd.Divider("设置")
+                        # save_btn = antd.Button("保存", type="primary", size="large")
                         view_process_btn = antd.Button("查看生成过程")
                         
 
-                with antd.Col(span=24, md=16):
+                with antd.Col(span=24, md=16):                   
                     with ms.Div(elem_classes="right_panel"):
                         with antd.Drawer(open=False, width="1200", title="生成过程") as drawer:
                             with ms.Div(elem_classes="step_container"):
@@ -368,6 +421,7 @@ with gr.Blocks(css=css) as demo:
                                     antd.Steps.Item(title="节日信息处理", description="正在生成节日主题和祝福语")
                                     antd.Steps.Item(title="背景图片生成", description="正在生成节日背景图片")
                                     antd.Steps.Item(title="卡片布局生成", description="正在生成祝福卡界面")
+                            #图像生成部分
                             display_chatbot = gr.Chatbot(type="messages", elem_classes="display_chatbot", height=1000, show_label=False, )
                                   
                         sandbox_output = gr.HTML("""
@@ -375,6 +429,16 @@ with gr.Blocks(css=css) as demo:
                               <h4>在左侧输入或选择你想说的祝福语开始制作吧～</h4>
                             </div>
                         """)
+                     # 示例部分
+                    antd.Divider("示例")
+                    with ms.Div(elem_classes="example-container"):
+                        with antd.Flex(gap="small", wrap=True):
+                            with ms.Each(DEMO_LIST):
+                                with antd.Card(hoverable=True, as_item="card") as demoCard:
+                                    antd.CardMeta()
+                                demoCard.click(demo_card_click, outputs=[input])  
+                                             
+                        
                         
     view_process_btn.click(lambda : gr.update(open=True), outputs=[drawer])
     drawer.close(lambda: gr.update(
