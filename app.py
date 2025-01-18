@@ -21,7 +21,7 @@ from string import Template
 from http import HTTPStatus
 
 import dashscope
-dashscope.api_key = "sk-1d9f630ab5a34072b30ac4630021a643"
+dashscope.api_key = "Your_api_key"
 
 
 
@@ -170,7 +170,7 @@ if not os.path.exists(directory_path):
 # 初始化 OpenAI 客户端
 client = OpenAI(
     # api_key=MODELSCOPE_ACCESS_TOKEN,
-    api_key="sk-1d9f630ab5a34072b30ac4630021a643",
+    api_key="Your_api_key",
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
