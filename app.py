@@ -21,10 +21,10 @@ from string import Template
 from http import HTTPStatus
 
 import dashscope
-dashscope.api_key = "Your_api_key"
+dashscope.api_key = "sk-04a65e8ee44346bc91811a1e1d84f2cc"
 
 
-
+# AI生成网页代码的指导说明书
 GenerateUiCodeSystemPrompt = """
 你是一个网页开发工程师，根据下面的指示编写网页。
 所有代码写在一个代码块中，形成一个完整的代码文件进行展示，不用将HTML代码和JavaScript代码分开。	
@@ -33,6 +33,7 @@ GenerateUiCodeSystemPrompt = """
 仅输出 html，不要附加任何描述文案。
 """
 
+ # HTML页面模板要求
 GenerateUiCodePromptTemplate = """
 创建一个HTML页面，用于展示节日祝福卡。页面应该包括以下部分：
 - **图片区域**：包含一张与节日相关的背景图片，图片链接为 $image_url。
@@ -41,23 +42,85 @@ GenerateUiCodePromptTemplate = """
 请确保页面布局美观，易于阅读，不限制页面高度，背景颜色为浅色，页面所有颜色根据节日氛围调整。
 """
 
+
 # 节日选项
 FESTIVALS = [
-    "春节", "元宵节", "情人节", "妇女节", "清明节", 
-    "劳动节", "端午节", "七夕节", "中秋节", "国庆节",
-    "重阳节", "圣诞节", "元旦"
+    # 传统节日
+    "春节", "元宵节", "清明节", "端午节",
+    "七夕节",  "中秋节", "重阳节",
+    "冬至", "腊八节", "小年",
+    
+    # 法定假日
+    "元旦", "劳动节", "国庆节",
+    
+    # 现代节日
+    "情人节", "妇女节", "母亲节",
+    "儿童节", "父亲节", "教师节",
+    "圣诞节",
+    # 个人纪念日
+    "生日", "结婚纪念日", "恋爱纪念日",
+    "毕业纪念日", "入职纪念日"
 ]
 
 # 节日主题配置
 FESTIVAL_THEMES = {
-    "春节": {"colors": ["#FF0000", "#FFFF00"], "icon": "🧧"},
-    "圣诞节": {"colors": ["#FFFFFF", "#FF0000"], "icon": "🎄"},
-    "情人节": {"colors": ["#FF1493", "#FFFFFF"], "icon": "💝"},
-    "中秋节": {"colors": ["#FFD700", "#000000"], "icon": "🌕"}
+    # 传统节日
+    "春节": {"colors": ["#FF0000", "#FFFF00"], "icon": "🧧"},   # 红+黄，红包
+    "元宵节": {"colors": ["#FF8C00", "#FFD700"], "icon": "🏮"},  # 灯笼橙+金，灯笼
+    "清明节": {"colors": ["#98FB98", "#FFFFFF"], "icon": "🌱"},  # 浅绿+白，新芽
+    "端午节": {"colors": ["#228B22", "#FFD700"], "icon": "🎏"},  # 绿+黄，鲤鱼旗(代表粽子)
+    "七夕节": {"colors": ["#FF69B4", "#FFFFFF"], "icon": "💑"},  # 粉红+白，情侣
+    "中秋节": {"colors": ["#FFD700", "#000000"], "icon": "🌕"},  # 金+黑，满月
+    "重阳节": {"colors": ["#FFA500", "#8B4513"], "icon": "🍁"},  # 橙+棕，枫叶
+    "冬至": {"colors": ["#87CEEB", "#FFFFFF"], "icon": "❄️"},    # 天蓝+白，雪花
+    "腊八节": {"colors": ["#8B4513", "#FFE4B5"], "icon": "🥣"},  # 棕+米白，粥碗
+    "小年": {"colors": ["#A0522D", "#FFD700"], "icon": "🧹"},    # 褐+金，扫帚
+    
+    # 法定假日
+    "元旦": {"colors": ["#FF0000", "#FFFFFF"], "icon": "🎆"},    # 红+白，烟花
+    "劳动节": {"colors": ["#4169E1", "#FFA500"], "icon": "👷"},  # 蓝+橙，工人
+    "国庆节": {"colors": ["#FF0000", "#FFFF00"], "icon": "🇨🇳"},  # 国旗红黄
+    
+    # 现代节日
+    "情人节": {"colors": ["#FF1493", "#FFFFFF"], "icon": "💝"},  # 粉红+白，爱心
+    "妇女节": {"colors": ["#FF69B4", "#FFFFFF"], "icon": "🌸"},  # 粉+白，花朵
+    "母亲节": {"colors": ["#FFB6C1", "#FFFFFF"], "icon": "👩"},  # 淡粉+白，女性
+    "儿童节": {"colors": ["#FF69B4", "#87CEEB"], "icon": "🎈"},  # 粉+蓝，气球
+    "父亲节": {"colors": ["#4169E1", "#FFFFFF"], "icon": "👨"},  # 蓝+白，男性
+    "教师节": {"colors": ["#800080", "#FFFFFF"], "icon": "📚"},  # 紫+白，书本
+    "圣诞节": {"colors": ["#228B22", "#FF0000"], "icon": "🎄"},  # 绿+红，圣诞树
+    # 纪念日
+    "生日": {"colors": ["#FF69B4", "#FFD700"], "icon": "🎂"},    # 粉红+金，蛋糕
+    "结婚纪念日": {"colors": ["#FF0000", "#FFFFFF"], "icon": "💍"},  # 红+白，戒指
+    "恋爱纪念日": {"colors": ["#FFB6C1", "#FF1493"], "icon": "💕"},  # 浅粉+深粉，爱心
+    "毕业纪念日": {"colors": ["#4169E1", "#FFFFFF"], "icon": "🎓"},  # 蓝+白，学士帽
+    "入职纪念日": {"colors": ["#228B22", "#FFD700"], "icon": "💼"}   # 绿+金，公文包
 }
 
-# 祝福对象
-RECIPIENTS = ["妈妈", "爸爸", "女朋友", "男朋友", "老公", "老婆", "祖父母", "外甥女", "同事", "朋友"]
+# 关系
+RECIPIENTS = [
+    # 直系亲属
+    "妈妈", "爸爸", "儿子", "女儿", 
+    "哥哥", "姐姐", "弟弟", "妹妹",
+    
+    # 配偶及伴侣关系
+    "老公", "老婆", "男朋友", "女朋友",
+    
+    # 扩展亲属关系
+    "爷爷", "奶奶", "外公", "外婆",
+    "叔叔", "阿姨", "舅舅", "姑姑",
+    
+    # 职场关系
+    "同事", "上司", "下属", "客户",
+    "合作伙伴", "导师", "实习生",
+    
+    # 教育关系
+    "老师", "班主任", "学生", "同学",
+    
+    # 社会关系
+    "朋友", "邻居", "室友", "队友",
+    "教练", "医生", "客户经理"
+]
 
 # 风格选项
 STYLES = [
@@ -67,6 +130,7 @@ STYLES = [
     "水墨画", "3d渲染", "人像", "动漫",
 ]
 
+#模版示例
 DEMO_LIST = [
   {
     "card": {
@@ -98,6 +162,7 @@ DEMO_LIST = [
   }
 ]
 
+#界面样式
 css = """
 .left_header {
   display: flex;
@@ -170,7 +235,7 @@ if not os.path.exists(directory_path):
 # 初始化 OpenAI 客户端
 client = OpenAI(
     # api_key=MODELSCOPE_ACCESS_TOKEN,
-    api_key="Your_api_key",
+    api_key="sk-04a65e8ee44346bc91811a1e1d84f2cc",
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
@@ -214,13 +279,14 @@ def send_to_sandbox(code):
 #     <p>祝福卡已保存到: {save_path}</p>
 #     """
 
+# 保存生成的祝福卡到本地文件
 OUTPUT_DIR = "output_assets"
-def save_card(festival: str, recipient: str, html_content: str) -> str:
+def save_card(festival: str, recipient: str, nickname: str, html_content: str) -> str:
     """保存生成的祝福卡到文件"""
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    filename = f"{festival}_{recipient}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.html"
+    filename = f"{festival}_{recipient}_{nickname}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.html"
     filepath = os.path.join(OUTPUT_DIR, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -236,16 +302,18 @@ def save_card(festival: str, recipient: str, html_content: str) -> str:
 #     <p>祝福卡已保存到: {save_result}</p>
 #     """
 
-def generate_word_info(query, festival, recipient, style, display_messages):
+# 生成祝福语和设计描述
+def generate_word_info(query, festival, recipient, nickname, style, display_messages):
     GenerateWordInfoSystemPrompt = f"""
     你是节日祝福卡生成助手，精通 JSON 数据集格式，请根据以下提示，生成节日祝福卡所需的所有信息，按照以下的 key 来生成 JSON:
-    - festival_name: {festival}节日
-    - recipient_name: {recipient}人物
+    - festival_name: {festival}
+    - recipient_name: {nickname}
     - style: {style}风格
-    - greeting_template: 祝福语
+    - greeting_template: 祝福语，祝福语中使用{nickname}作为称呼主体， {recipient}代表被祝福人的关系
     - design_style: 设计风格描述
-    - background_prompt: 用于生成背景图片的Prompt
+    - background_prompt: 用于生成背景图片的Prompt，设计元素需体现{style}类型特征，背景描述要融合{festival}节日特征
     仅输出 JSON 内容，不返回 JSON 以外的任何内容。
+    
     """
     messages = [
         {'role': 'system', 'content': GenerateWordInfoSystemPrompt},
@@ -283,7 +351,7 @@ def generate_word_info(query, festival, recipient, style, display_messages):
         "is_stop": True,
         }
 
-async def generate_image(query):
+async def generate_image(query): # 调用阿里云API生成节日图片
     # 修改： 图片生成大小
     rsp = ImageSynthesis.call(model="flux-dev",
                                 prompt=query,
@@ -306,11 +374,13 @@ async def generate_image(query):
     #     print('Failed, status_code: %s, code: %s, message: %s' %
     #             (rsp.status_code, rsp.code, rsp.message))
 
+ # 异步处理图片生成   
 async def generate_media(infos):
     return await asyncio.gather(
         generate_image(infos['background_prompt'])
         )
 
+# 生成祝福卡的HTML代码
 def generate_ui_code(infos, display_messages):
     template = Template(GenerateUiCodePromptTemplate)
     prompt = template.substitute(infos)
@@ -348,8 +418,9 @@ def generate_ui_code(infos, display_messages):
             "content": str(e),
             "is_stop": True,
         }
+        
     
-with gr.Blocks(css=css) as demo:
+with gr.Blocks(css=css) as demo:  # 主界面框架
     history = gr.State([])
 
     with ms.Application():
@@ -363,29 +434,45 @@ with gr.Blocks(css=css) as demo:
                                    <h2>节日祝福卡生成器</h2>
                                   </div>
                                    """)
+                        # 左侧控制面板
                         
+                        # ========== 祝福内容设置 ==========
                         # 节日主题选择
                         festival = gr.Dropdown(
                             choices=list(FESTIVAL_THEMES.keys()),
                             label="选择节日",
-                            value="春节" 
+                            value="春节",
+                            interactive=True  # 允许动态更新选项
                         )
-                        # 祝福对象选择
+                        
+                        # 关系选择
                         recipient = gr.Dropdown(
                             choices=RECIPIENTS,
-                            label="祝福对象",
+                            label="关系",
                             value="妈妈" 
                         ) 
+                        
+                        # 称呼输入
+                        nickname = gr.Textbox(
+                            label="称呼",
+                            placeholder="请输入具体称呼（如：妈妈、李老师、宝贝）"
+                        )
                         input = antd.InputTextarea(
                             size="large", allow_clear=True, placeholder="请输入想说的祝福语")                        
                         
+                        # ========== 图片元素设置 ========== 
                         # 祝福风格选择
                         style = gr.Radio(
                             choices=STYLES,
                             label="选择风格",
                             value="传统风格" 
                         ) 
-
+                        #图片元素设置
+                        # image_elements = gr.Textbox(
+                        #     label="图片元素描述",
+                        #     placeholder="请输入希望包含的视觉元素（用逗号分隔）\n示例：蛋糕、气球、星空、卡通人物",
+                        #     lines=2
+                        # )
                         # input = antd.InputTextarea(
                         #     size="large", allow_clear=True, placeholder="请输入想说的祝福语")
                         
@@ -424,6 +511,7 @@ with gr.Blocks(css=css) as demo:
                             #图像生成部分
                             display_chatbot = gr.Chatbot(type="messages", elem_classes="display_chatbot", height=1000, show_label=False, )
                                   
+                        # 右侧展示区域        
                         sandbox_output = gr.HTML("""
                             <div align="center">
                               <h4>在左侧输入或选择你想说的祝福语开始制作吧～</h4>
@@ -444,13 +532,13 @@ with gr.Blocks(css=css) as demo:
     drawer.close(lambda: gr.update(
                         open=False), inputs=[], outputs=[drawer])
 
-    def run_flow(query, festival, recipient, style, request: gr.Request):
+    def run_flow(query, festival, recipient, nickname, style, request: gr.Request):
         display_messages = []
         yield {
             steps: gr.update(current=0),
             drawer: gr.update(open=True),
         }
-        for info_result in generate_word_info(query, festival, recipient, style, display_messages):
+        for info_result in generate_word_info(query, festival, recipient, nickname,  style, display_messages):
 
             if info_result['is_stop']:
                 word_info_str = info_result['content']
@@ -510,7 +598,7 @@ with gr.Blocks(css=css) as demo:
             sandbox_output: send_to_sandbox(remove_code_block(ui_code_str)),
         }
 
-    btn.click(run_flow, inputs=[input, festival, recipient, style], outputs=[steps, drawer, display_chatbot, sandbox_output])
+    btn.click(run_flow, inputs=[input, festival, recipient, nickname, style], outputs=[steps, drawer, display_chatbot, sandbox_output])
                      
     # save_btn.click(
     #     save_card,
