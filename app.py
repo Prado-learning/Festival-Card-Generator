@@ -124,10 +124,23 @@ RECIPIENTS = [
 
 # 风格选项
 STYLES = [
-    "传统风格", "现代风格", "卡通风格", "简约风格",
-    "商务风格", "浪漫风格", "创意风格", "中国风",
-    "二次元", "手办", "风景", "卡通",
-    "水墨画", "3d渲染", "人像", "动漫",
+    # 传统经典类
+    "中国风", "水墨画", "古典油画", "剪纸艺术",
+    
+    # 现代流行类
+    "简约清新", "商务精英", "霓虹灯效", "几何拼贴",
+    
+    # 科技潮流类
+    "3D立体", "科幻未来", "像素游戏", "透明玻璃风",
+    
+    # 动漫卡通类
+    "日漫风格", "美式卡通", "手绘插画", "Q版萌系",
+    
+    # 摄影写实类
+    "自然风景", "人物特写", "复古胶片", "城市街拍",
+    
+    # 个性创意类
+    "浪漫星空", "机械装甲", "童话世界", "魔法学院"
 ]
 
 #模版示例
@@ -252,13 +265,20 @@ def demo_card_click(e: gr.EventData):
 def covert_display_messages(display_messages):
   return [{'role': m['role'] == 'user' and 'user' or 'assistant', 'content': m['content']} for m in display_messages]
 
+# def remove_code_block(text):
+#     pattern = r'```html\n(.+?)\n```'
+#     match = re.search(pattern, text, re.DOTALL)
+#     if match:
+#         return match.group(1).strip()
+#     else:
+#         return text.strip()
+
+#1.22
 def remove_code_block(text):
-    pattern = r'```html\n(.+?)\n```'
+    """去除代码块包裹标记"""
+    pattern = r'```.*?\n(.*?)\n```'  # 匹配任意代码块
     match = re.search(pattern, text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    else:
-        return text.strip()
+    return match.group(1).strip() if match else text.strip()
 
 def send_to_sandbox(code):
     encoded_html = base64.b64encode(code.encode('utf-8')).decode('utf-8')
@@ -281,12 +301,12 @@ def send_to_sandbox(code):
 
 # 保存生成的祝福卡到本地文件
 OUTPUT_DIR = "output_assets"
-def save_card(festival: str, recipient: str, nickname: str, html_content: str) -> str:
+def save_card(festival: str, recipient: str, nickname: str, elements: str, html_content: str) -> str:
     """保存生成的祝福卡到文件"""
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
         
-    filename = f"{festival}_{recipient}_{nickname}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.html"
+    filename = f"{festival}_{recipient}_{nickname}_{elements[:20]}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.html"
     filepath = os.path.join(OUTPUT_DIR, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -303,7 +323,7 @@ def save_card(festival: str, recipient: str, nickname: str, html_content: str) -
 #     """
 
 # 生成祝福语和设计描述
-def generate_word_info(query, festival, recipient, nickname, style, display_messages):
+def generate_word_info(query, festival, recipient, nickname, style,image_elements, display_messages):
     GenerateWordInfoSystemPrompt = f"""
     你是节日祝福卡生成助手，精通 JSON 数据集格式，请根据以下提示，生成节日祝福卡所需的所有信息，按照以下的 key 来生成 JSON:
     - festival_name: {festival}
@@ -311,9 +331,8 @@ def generate_word_info(query, festival, recipient, nickname, style, display_mess
     - style: {style}风格
     - greeting_template: 祝福语，祝福语中使用{nickname}作为称呼主体， {recipient}代表被祝福人的关系
     - design_style: 设计风格描述
-    - background_prompt: 用于生成背景图片的Prompt，设计元素需体现{style}类型特征，背景描述要融合{festival}节日特征
+    - background_prompt: 用于生成背景图片的Prompt，额外图片元素需求{image_elements}请将上述元素合理融入背景描述，保持整体设计协调,设计元素需体现{style}类型特征，背景描述要融合{festival}节日特征
     仅输出 JSON 内容，不返回 JSON 以外的任何内容。
-    
     """
     messages = [
         {'role': 'system', 'content': GenerateWordInfoSystemPrompt},
@@ -430,55 +449,63 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                     with antd.Flex(vertical=True, gap="middle", wrap=True):
                         header = gr.HTML("""
                                   <div class="left_header">
-                                    <img src="https://uy.wzznft.com/i/2025/01/14/9dxn6i7.png" style="width: 500px; height: 50px;" />
+    
                                    <h2>节日祝福卡生成器</h2>
                                   </div>
                                    """)
                         # 左侧控制面板
                         
                         # ========== 祝福内容设置 ==========
-                        # 节日主题选择
-                        festival = gr.Dropdown(
-                            choices=list(FESTIVAL_THEMES.keys()),
-                            label="选择节日",
-                            value="春节",
-                            interactive=True  # 允许动态更新选项
-                        )
-                        
-                        # 关系选择
-                        recipient = gr.Dropdown(
-                            choices=RECIPIENTS,
-                            label="关系",
-                            value="妈妈" 
-                        ) 
-                        
-                        # 称呼输入
-                        nickname = gr.Textbox(
-                            label="称呼",
-                            placeholder="请输入具体称呼（如：妈妈、李老师、宝贝）"
-                        )
-                        input = antd.InputTextarea(
-                            size="large", allow_clear=True, placeholder="请输入想说的祝福语")                        
-                        
-                        # ========== 图片元素设置 ========== 
-                        # 祝福风格选择
-                        style = gr.Radio(
-                            choices=STYLES,
-                            label="选择风格",
-                            value="传统风格" 
-                        ) 
-                        #图片元素设置
-                        # image_elements = gr.Textbox(
-                        #     label="图片元素描述",
-                        #     placeholder="请输入希望包含的视觉元素（用逗号分隔）\n示例：蛋糕、气球、星空、卡通人物",
-                        #     lines=2
-                        # )
-                        # input = antd.InputTextarea(
-                        #     size="large", allow_clear=True, placeholder="请输入想说的祝福语")
-                        
-                        query = [input, festival, recipient, style]
-                        print("*"*100)
-                        print(query)
+                        with ms.Div(elem_classes="config-section", elem_id="greeting-config"):
+                            gr.HTML("""<h3 class="section-title">🎨 祝福内容设置</h3>""")
+                            # 节日主题选择
+                            festival = gr.Dropdown(
+                                choices=list(FESTIVAL_THEMES.keys()),
+                                label="选择节日",
+                                value="春节",
+                                interactive=True  # 允许动态更新选项
+                            )
+
+                            # 关系选择
+                            recipient = gr.Dropdown(
+                                choices=RECIPIENTS,
+                                label="关系",
+                                value="妈妈" 
+                            ) 
+
+                            # 称呼输入
+                            nickname = gr.Textbox(
+                                label="称呼",
+                                placeholder="请输入具体称呼（如：妈妈、李老师、宝贝）"
+                            )
+                            
+                            input = gr.Textbox(
+                                label="祝福语",
+                                placeholder="请输入想说的祝福语"
+                            )
+                            # input = antd.InputTextarea(
+                            #     size="large", allow_clear=True, placeholder="请输入想说的祝福语")                        
+
+                            # ========== 图片元素设置 ========== 
+                        with ms.Div(elem_classes="config-section", elem_id="image-config"):
+                            gr.HTML("""<h3 class="section-title">🖼️ 图片元素设置</h3>""")
+                            # 祝福风格选择
+                            style = gr.Radio(
+                                choices=STYLES,
+                                label="选择风格",
+                                value="传统风格" 
+                            ) 
+                            #图片描述输入
+                            image_elements = gr.Textbox(
+                                label="图片元素描述",
+                                placeholder="请输入希望包含的视觉元素（用逗号分隔）\n示例：蛋糕、气球、星空、卡通人物",
+                                lines=2
+                            )
+                            gr.HTML("""<small>💡 可描述颜色/物体/场景等元素，系统将智能融合到设计中</small>""")
+
+                            query = [input, festival, recipient, style,image_elements]
+                            print("*"*100)
+                            print(query)
                         
                         # 按钮容器，占据左侧栏的全部宽度
                         with ms.Div(elem_classes="button-container"):  # 包裹按钮的容器
@@ -532,13 +559,13 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
     drawer.close(lambda: gr.update(
                         open=False), inputs=[], outputs=[drawer])
 
-    def run_flow(query, festival, recipient, nickname, style, request: gr.Request):
+    def run_flow(query, festival, recipient, nickname, style, image_elements, request: gr.Request):
         display_messages = []
         yield {
             steps: gr.update(current=0),
             drawer: gr.update(open=True),
         }
-        for info_result in generate_word_info(query, festival, recipient, nickname,  style, display_messages):
+        for info_result in generate_word_info(query, festival, recipient, nickname,  style, image_elements, display_messages):
 
             if info_result['is_stop']:
                 word_info_str = info_result['content']
@@ -553,6 +580,9 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
 
         # 假设word_info_str是一个有效的JSON字符串
         try:
+            # 新增代码块处理
+            word_info_str = remove_code_block(info_result['content'])
+            
             infos = json.loads(word_info_str)  # 将字符串转换为JSON对象（字典）
             print('infos:', infos)  # 打印解析后的结果
         except json.JSONDecodeError as e:
@@ -598,7 +628,7 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
             sandbox_output: send_to_sandbox(remove_code_block(ui_code_str)),
         }
 
-    btn.click(run_flow, inputs=[input, festival, recipient, nickname, style], outputs=[steps, drawer, display_chatbot, sandbox_output])
+    btn.click(run_flow, inputs=[input, festival, recipient, nickname, style, image_elements], outputs=[steps, drawer, display_chatbot, sandbox_output])
                      
     # save_btn.click(
     #     save_card,
