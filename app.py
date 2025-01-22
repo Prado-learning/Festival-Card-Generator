@@ -493,7 +493,7 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                             style = gr.Radio(
                                 choices=STYLES,
                                 label="选择风格",
-                                value="传统风格" 
+                                value="中国风" 
                             ) 
                             #图片描述输入
                             image_elements = gr.Textbox(
