@@ -510,7 +510,7 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                         # 按钮容器，占据左侧栏的全部宽度
                         with ms.Div(elem_classes="button-container"):  # 包裹按钮的容器
                             btn = antd.Button("生成", type="primary", size="large", elem_classes="half-width-button")  # 生成按钮
-                            save_btn = antd.Button("保存", type="primary", size="large", elem_classes="half-width-button")  # 保存按钮
+                            # save_btn = antd.Button("保存", type="primary", size="large", elem_classes="half-width-button")  # 保存按钮
 
 
                         # btn = antd.Button("生成", type="primary", size="large")
