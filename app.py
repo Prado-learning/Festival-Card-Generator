@@ -179,6 +179,7 @@ DEMO_LIST = [
     "card": {
       "index": 0,
     #  "style": "中国风"
+      "nickname": "亲爱的妈妈",
       "image_elements": "红色灯笼, 鞭炮, 春联, 红包, 金色元宝, 烟花背景, 喜庆中国结, 福字装饰"
     },
     "title": "春节🧧",
@@ -187,6 +188,7 @@ DEMO_LIST = [
   {
     "card": {
       "index": 1,
+      "nickname": "亲爱的妈妈",
       "image_elements": "粉色康乃馨, 心形装饰, 手写贺卡, 浪漫花束, 温馨阳光房, 丝带蝴蝶结, 爱心背景"
 
     #   "style": "人物特写"
@@ -197,6 +199,7 @@ DEMO_LIST = [
   {
     "card": {
       "index": 2,
+      "nickname": "亲爱的妈妈",
       "image_elements": "圣诞树, 雪花, 礼物盒, 彩色灯串, 圣诞老人的雪橇, 红色圣诞帽, 雪人, 壁炉装饰"
     #   "style": "Q版萌系"
     },
@@ -206,6 +209,7 @@ DEMO_LIST = [
   {
     "card": {
       "index": 3,
+      "nickname": "亲爱的妈妈",
       "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
     },
     "title": "生日🎂",
@@ -296,7 +300,8 @@ def demo_card_click(e: gr.EventData):
         # 返回对应的字段，更新输入框值
         return [
             DEMO_LIST[index]["description"],  # 更新祝福语输入框
-            card_data.get("image_elements", ""),  # 更新图片元素描述框
+            card_data.get("image_elements", ""),
+            card_data.get("nickname","")# 更新图片元素描述框
         ]
     except Exception as e:
         print(f"[ERROR] 示例加载失败: {str(e)}")
@@ -590,7 +595,7 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                                 # 将点击事件与函数绑定
                                 demoCard.click(
                                     demo_card_click,
-                                    outputs=[input, image_elements]  # 更新对应输入框
+                                    outputs=[input, image_elements, nickname]  # 更新对应输入框
                                 )          
                         
                         
