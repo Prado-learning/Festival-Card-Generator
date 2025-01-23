@@ -143,11 +143,43 @@ STYLES = [
     "浪漫星空", "机械装甲", "童话世界", "魔法学院"
 ]
 
+STYLES_introduction = {
+    "中国风": "传统的中国文化风格",
+    "水墨画": "传统的中国水墨艺术",
+    "古典油画": "欧洲风格的古典油画",
+    "剪纸艺术": "传统的中国剪纸艺术",
+    "简约清新": "现代流行的简约清新风",
+    "商务精英": "适合商务场合的精英风格",
+    "霓虹灯效": "流行的霓虹灯艺术风格",
+    "几何拼贴": "以几何元素为主的拼贴风格",
+    "3D立体": "科技感强的3D立体效果",
+    "科幻未来": "以未来科技为主题的风格",
+    "像素游戏": "复古像素化的游戏风格",
+    "透明玻璃风": "现代科技感的玻璃材质效果",
+    "日漫风格": "受日本漫画启发的艺术风格",
+    "美式卡通": "美国卡通风格",
+    "手绘插画": "手工绘制的插画风格",
+    "Q版萌系": "卡通化的可爱风格",
+    "自然风景": "以自然风景为主题的写实风格",
+    "人物特写": "专注人物细节的写实风格",
+    "复古胶片": "模拟胶片摄影的复古风格",
+    "城市街拍": "以城市街景为主题的摄影风格",
+    "浪漫星空": "充满浪漫和幻想的星空风格",
+    "机械装甲": "科幻感的机械装甲风格",
+    "童话世界": "以童话故事为主题的风格",
+    "魔法学院": "以魔法世界为主题的风格"
+}
+
+
+
+
 #模版示例
 DEMO_LIST = [
   {
     "card": {
       "index": 0,
+    #  "style": "中国风"
+      "image_elements": "红色灯笼, 鞭炮, 春联, 红包, 金色元宝, 烟花背景, 喜庆中国结, 福字装饰"
     },
     "title": "春节🧧",
     "description": "生成春节祝福卡"
@@ -155,13 +187,18 @@ DEMO_LIST = [
   {
     "card": {
       "index": 1,
+      "image_elements": "粉色康乃馨, 心形装饰, 手写贺卡, 浪漫花束, 温馨阳光房, 丝带蝴蝶结, 爱心背景"
+
+    #   "style": "人物特写"
     },
-    "title": "情人节💝",
-    "description": "生成情人节祝福卡"
+    "title": "母亲节💝",
+    "description": "生成母亲节祝福卡"
   },
   {
     "card": {
       "index": 2,
+      "image_elements": "圣诞树, 雪花, 礼物盒, 彩色灯串, 圣诞老人的雪橇, 红色圣诞帽, 雪人, 壁炉装饰"
+    #   "style": "Q版萌系"
     },
     "title": "圣诞节🎄",
     "description": "生成圣诞节祝福卡"
@@ -169,6 +206,7 @@ DEMO_LIST = [
   {
     "card": {
       "index": 3,
+      "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
     },
     "title": "生日🎂",
     "description": "生成生日祝福卡"
@@ -196,15 +234,6 @@ css = """
   align-items: center;
 }
 
-# .button-container {
-#   display: flex;
-#   justify-content: space-between; /* 按钮居中对齐 */
-#   gap: 10px; /* 按钮之间的间距 */
-#   width: 100%; /* 父容器占据左侧栏全部宽度 */  
-# }
-# .button {
-#   flex: 1; /* 每个按钮占据父容器的一半宽度 */
-# }
 .button-container {
   display: flex;
   gap: 10px; /* 按钮之间的间距 */
@@ -243,7 +272,6 @@ if not os.path.exists(directory_path):
     os.makedirs(directory_path)
     
 
-# MODELSCOPE_ACCESS_TOKEN = os.getenv("MODELSCOPE_ACCESS_TOKEN")
 
 # 初始化 OpenAI 客户端
 client = OpenAI(
@@ -252,26 +280,52 @@ client = OpenAI(
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
-# audio_model_id = 'iic/speech_sambert-hifigan_tts_zh-cn_16k'
-# sambert_hifigan_tts = pipeline(task=Tasks.text_to_speech, model=audio_model_id)
-
 def resolve_assets(relative_path):
     return os.path.join(os.getcwd(), directory_path, relative_path)
 
 def demo_card_click(e: gr.EventData):
-    index = e._data['component']['index']
-    return DEMO_LIST[index]['description']
+    try:
+        # 获取点击的卡片索引
+        index = e._data['component']['index']
+        card_data = DEMO_LIST[index]['card']
+
+        # 打印调试信息
+        print(f"Clicked Card Index: {index}")
+        print(f"Card Data: {card_data}")
+
+        # 返回对应的字段，更新输入框值
+        return [
+            DEMO_LIST[index]["description"],  # 更新祝福语输入框
+            card_data.get("image_elements", ""),  # 更新图片元素描述框
+        ]
+    except Exception as e:
+        print(f"[ERROR] 示例加载失败: {str(e)}")
+        # 返回空更新，保持输入框不变
+        return [gr.update(), gr.update()]
+
+# def demo_card_click(e: gr.EventData):
+#     # try:
+#         # 根据点击的卡片索引获取示例数据
+#     index = e._data['component']['index']
+#     return DEMO_LIST[index][image_elements]['description']
+#         # card_data = DEMO_LIST[index]['card']
+
+        # 返回示例中的字段，填充到对应的左侧输入框
+        # return card_data["style"]
+            #card_data["festival"],       # 填充节日选择框
+            # card_data["recipient"],      # 填充关系选择框
+            # card_data["nickname"],       # 填充称呼输入框
+            # card_data["input"],          # 填充祝福语输入框
+            # card_data["style"],          # 填充风格单选框
+            # card_data["image_elements"]  # 填充图片元素描述框
+        
+    # except Exception as e:
+    #     print(f"[ERROR] 示例加载失败: {str(e)}")
+    #     return [gr.update()] * 6  # 遇到错误时保持输入框不变
+
 
 def covert_display_messages(display_messages):
   return [{'role': m['role'] == 'user' and 'user' or 'assistant', 'content': m['content']} for m in display_messages]
-
-# def remove_code_block(text):
-#     pattern = r'```html\n(.+?)\n```'
-#     match = re.search(pattern, text, re.DOTALL)
-#     if match:
-#         return match.group(1).strip()
-#     else:
-#         return text.strip()
 
 #1.22
 def remove_code_block(text):
@@ -284,20 +338,6 @@ def send_to_sandbox(code):
     encoded_html = base64.b64encode(code.encode('utf-8')).decode('utf-8')
     data_uri = f"data:text/html;charset=utf-8;base64,{encoded_html}"
     return f"<iframe src=\"{data_uri}\" width=\"100%\" height=\"540px\"></iframe>"  # 修改：缩小iframe的高度
-
-# 保存按钮的点击事件
-# def save_card(festival, recipient, ui_code_str):
-#     save_path = os.path.join('./output_assets', f"{festival}_{recipient}.html")
-#     with open(save_path, 'w', encoding='utf-8') as f:
-#         f.write(ui_code_str)
-#     print(f"Save card to {save_path}")
-#     # 返回包含JavaScript的HTML字符串
-#     return f"""
-#     <script>
-#         alert("祝福卡已保存成功！");
-#     </script>
-#     <p>祝福卡已保存到: {save_path}</p>
-#     """
 
 # 保存生成的祝福卡到本地文件
 OUTPUT_DIR = "output_assets"
@@ -313,14 +353,6 @@ def save_card(festival: str, recipient: str, nickname: str, elements: str, html_
         f.write(html_content)
         
     return f"祝福卡已保存到：{filepath}"
-
-# def on_save_success(save_result: str) -> str:
-#     return f"""
-#     <script>
-#         alert("祝福卡已保存成功！");
-#     </script>
-#     <p>祝福卡已保存到: {save_result}</p>
-#     """
 
 # 生成祝福语和设计描述
 def generate_word_info(query, festival, recipient, nickname, style,image_elements, display_messages):
@@ -387,11 +419,6 @@ async def generate_image(query): # 调用阿里云API生成节日图片
     else:
         print(f"Failed to generate image, status_code: {rsp.status_code}, message: {rsp.message}")
         return None
-    # if rsp.status_code == HTTPStatus.OK:
-    #     return rsp.output.results[0].url
-    # else:
-    #     print('Failed, status_code: %s, code: %s, message: %s' %
-    #             (rsp.status_code, rsp.code, rsp.message))
 
  # 异步处理图片生成   
 async def generate_media(infos):
@@ -458,7 +485,14 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                         # ========== 祝福内容设置 ==========
                         with ms.Div(elem_classes="config-section", elem_id="greeting-config"):
                             gr.HTML("""<h3 class="section-title">🎨 祝福内容设置</h3>""")
-                            # 节日主题选择
+                            # 节日主题选择,修改
+                            # festival = gr.CheckboxGroup(
+                            #     choices=list(FESTIVAL_THEMES.keys()),  # 确保列表中包含所有节日选项
+                            #     label="选择节日",
+                            #     value=["春节","圣诞节", "情人节", "生日"],  # 默认选中的节日
+                            #     interactive=True  # 允许动态更新选项
+                            # )
+
                             festival = gr.Dropdown(
                                 choices=list(FESTIVAL_THEMES.keys()),
                                 label="选择节日",
@@ -490,6 +524,19 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                         with ms.Div(elem_classes="config-section", elem_id="image-config"):
                             gr.HTML("""<h3 class="section-title">🖼️ 图片元素设置</h3>""")
                             # 祝福风格选择
+                            # style = gr.CheckboxGroup(
+                            #     choices=list(STYLES_introduction.keys()),  # 使用字典的键作为选项
+                            #     label="选择风格",
+                            #     value=["中国风", "人物特写", "手绘插画", "Q版萌系"],  # 默认选项
+                            #     interactive=True
+                            # )
+                            # style = gr.Radio(
+                            #     choices=list(STYLES_introduction.keys()),  # 使用风格字典的键作为选项
+                            #     label="选择风格",
+                            #     value="中国风",  # 设置默认值
+                            #     interactive=True
+                            # )
+
                             style = gr.Radio(
                                 choices=STYLES,
                                 label="选择风格",
@@ -510,20 +557,6 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                         # 按钮容器，占据左侧栏的全部宽度
                         with ms.Div(elem_classes="button-container"):  # 包裹按钮的容器
                             btn = antd.Button("生成", type="primary", size="large", elem_classes="half-width-button")  # 生成按钮
-                            # save_btn = antd.Button("保存", type="primary", size="large", elem_classes="half-width-button")  # 保存按钮
-
-
-                        # btn = antd.Button("生成", type="primary", size="large")
-                        
-                        # antd.Divider("示例")
-                        # with antd.Flex(gap="small", wrap=True):
-                        #     with ms.Each(DEMO_LIST):
-                        #         with antd.Card(hoverable=True, as_item="card") as demoCard:
-                        #             antd.CardMeta()
-                        #         demoCard.click(demo_card_click, outputs=[input])
-
-                        # antd.Divider("设置")
-                        # save_btn = antd.Button("保存", type="primary", size="large")
                         view_process_btn = antd.Button("查看生成过程")
                         
 
@@ -545,14 +578,20 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                             </div>
                         """)
                      # 示例部分
+
+
                     antd.Divider("示例")
                     with ms.Div(elem_classes="example-container"):
                         with antd.Flex(gap="small", wrap=True):
                             with ms.Each(DEMO_LIST):
                                 with antd.Card(hoverable=True, as_item="card") as demoCard:
                                     antd.CardMeta()
-                                demoCard.click(demo_card_click, outputs=[input])  
-                                             
+
+                                # 将点击事件与函数绑定
+                                demoCard.click(
+                                    demo_card_click,
+                                    outputs=[input, image_elements]  # 更新对应输入框
+                                )          
                         
                         
     view_process_btn.click(lambda : gr.update(open=True), outputs=[drawer])
@@ -634,6 +673,10 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
     #     save_card,
     #     inputs=[festival, recipient, display_chatbot]
     # )
+print(f"DEMO_LIST: {DEMO_LIST}")
+print(f"style: {style}")
+
+
 
 # 启动 Gradio 应用
 demo.launch()

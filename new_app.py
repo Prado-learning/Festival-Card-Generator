@@ -178,8 +178,8 @@ DEMO_LIST = [
   {
     "card": {
       "index": 0,
-      "style": "中国风",
-      "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
+    #  "style": "中国风"
+      "image_elements": "红色灯笼, 鞭炮, 春联, 红包, 金色元宝, 烟花背景, 喜庆中国结, 福字装饰"
     },
     "title": "春节🧧",
     "description": "生成春节祝福卡"
@@ -187,8 +187,9 @@ DEMO_LIST = [
   {
     "card": {
       "index": 1,
-      "style": "人物特写",
-      "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
+      "image_elements": "粉色康乃馨, 心形装饰, 手写贺卡, 浪漫花束, 温馨阳光房, 丝带蝴蝶结, 爱心背景"
+
+    #   "style": "人物特写"
     },
     "title": "母亲节💝",
     "description": "生成母亲节祝福卡"
@@ -196,8 +197,8 @@ DEMO_LIST = [
   {
     "card": {
       "index": 2,
-      "style": "Q版萌系",
-      "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
+      "image_elements": "圣诞树, 雪花, 礼物盒, 彩色灯串, 圣诞老人的雪橇, 红色圣诞帽, 雪人, 壁炉装饰"
+    #   "style": "Q版萌系"
     },
     "title": "圣诞节🎄",
     "description": "生成圣诞节祝福卡"
@@ -205,7 +206,6 @@ DEMO_LIST = [
   {
     "card": {
       "index": 3,
-      "style":"魔法学院",
       "image_elements": "24岁，蛇年，生日蛋糕, 彩色气球, 星星灯串, 礼物堆"
     },
     "title": "生日🎂",
@@ -293,17 +293,15 @@ def demo_card_click(e: gr.EventData):
         print(f"Clicked Card Index: {index}")
         print(f"Card Data: {card_data}")
 
-        # 返回更新的字段，包括祝福语、图片元素和风格
+        # 返回对应的字段，更新输入框值
         return [
             DEMO_LIST[index]["description"],  # 更新祝福语输入框
             card_data.get("image_elements", ""),  # 更新图片元素描述框
-            card_data.get("style", "中国风"),  # 更新风格选择控件，默认为 "中国风"
         ]
     except Exception as e:
         print(f"[ERROR] 示例加载失败: {str(e)}")
         # 返回空更新，保持输入框不变
-        return [gr.update(), gr.update(), gr.update()]
-
+        return [gr.update(), gr.update()]
 
 # def demo_card_click(e: gr.EventData):
 #     # try:
@@ -526,23 +524,24 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                         with ms.Div(elem_classes="config-section", elem_id="image-config"):
                             gr.HTML("""<h3 class="section-title">🖼️ 图片元素设置</h3>""")
                             # 祝福风格选择
+                            # style = gr.CheckboxGroup(
+                            #     choices=list(STYLES_introduction.keys()),  # 使用字典的键作为选项
+                            #     label="选择风格",
+                            #     value=["中国风", "人物特写", "手绘插画", "Q版萌系"],  # 默认选项
+                            #     interactive=True
+                            # )
                             # style = gr.Radio(
                             #     choices=list(STYLES_introduction.keys()),  # 使用风格字典的键作为选项
                             #     label="选择风格",
                             #     value="中国风",  # 设置默认值
                             #     interactive=True
                             # )
+
                             style = gr.Radio(
-                                choices=STYLES,  # 风格选项列表
+                                choices=STYLES,
                                 label="选择风格",
-                                value="中国风",  # 默认值
-                                # interactive=True  # 允许动态交互
-                            )
-                            # style = gr.Radio(
-                            #     choices=STYLES,
-                            #     label="选择风格",
-                            #     value="中国风" 
-                            # ) 
+                                value="中国风" 
+                            ) 
                             #图片描述输入
                             image_elements = gr.Textbox(
                                 label="图片元素描述",
@@ -587,10 +586,11 @@ with gr.Blocks(css=css) as demo:  # 主界面框架
                             with ms.Each(DEMO_LIST):
                                 with antd.Card(hoverable=True, as_item="card") as demoCard:
                                     antd.CardMeta()
-                                # 点击事件绑定
+
+                                # 将点击事件与函数绑定
                                 demoCard.click(
                                     demo_card_click,
-                                    outputs=[input, image_elements, style]  # 更新祝福语、图片元素和风格
+                                    outputs=[input, image_elements]  # 更新对应输入框
                                 )          
                         
                         
